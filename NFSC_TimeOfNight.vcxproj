@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>..\..\..\Games\Need for Speed Carbon\_apex\scripts\</OutDir>
+    <OutDir>D:\Games\Need for Speed Carbon\_game\scripts\</OutDir>
     <TargetName>NFSCTimeOfNight</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>

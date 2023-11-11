@@ -19,8 +19,6 @@ struct eTimeOfDayLighting
 	}
 };
 
-unsigned int FogColor = 0;
-
 struct Presset
 {
 	float Vertex1;
@@ -30,6 +28,7 @@ struct Presset
 	float Car;
 } Morning, Night, FrontEnd;
 
+unsigned int FogColor = 0;
 float ForceTime = -1.0f;
 float LampFlareThreshold = 0.0f;
 float LampFlareBackup = -1.0f;
@@ -83,9 +82,12 @@ auto pFogColor = (int*)0x00B74234;
 auto LampFlareSize = (float*)0x00A6BC14;
 auto SkyCarReflection = (float*)0x00A63D1C;
 auto SkyRoadReflection = (float*)0x00A63D18;
+auto _UpdateTod = (void(__thiscall*)(eTimeOfDayLighting * _this))0x007F1080;
 
-void Update()
+void __fastcall Update(eTimeOfDayLighting* tod)
 {
+	_UpdateTod(tod);
+
 	if (LiveReload)
 	{
 		InitConfig();
@@ -95,7 +97,6 @@ void Update()
 	{
 		*pFogColor = FogColor;
 
-		auto tod = eTimeOfDayLighting::Instance();
 		float time = ForceTime < 0 ? tod->CurrentTimeOfDay : ForceTime;
 
 		SkyBrightness = lerp(Night.Sky, Morning.Sky, time);
@@ -130,15 +131,6 @@ void Update()
 		*FogFallof = 0.0002579985012;
 		*SkyRotation = 0;
 	}
-}
-
-void UpdateHook()
-{
-	__asm pushad;
-
-	Update();
-
-	__asm popad;
 }
 
 bool __fastcall DALOptions_GetTimeOfDay(void*, void*, float* val)
@@ -202,7 +194,7 @@ void Init()
 	InitConfig();
 
 	// Hope no one uses this nullsub
-	injector::MakeCALL(0x0072E97E, UpdateHook, true);
+	injector::MakeCALL(0x0072EC94, Update, true);
 
 	injector::WriteMemory(0x0072E5E1, &SkyBrightness, true);
 	injector::WriteMemory(0x007497BB, &WindowBrightness, true);
