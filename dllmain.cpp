@@ -54,6 +54,10 @@ void InitConfig()
 	InitPresset(iniReader, FrontEnd, "FRONTEND");
 
 	ForceTime = iniReader.ReadFloat("GENERAL", "ForceTime", -1.0f);
+	if (ForceTime > 1.0f)
+	{
+		ForceTime = 1.0f;
+	}
 
 	LampFlareThreshold = iniReader.ReadFloat("GENERAL", "LampFlareThreshold", 0.85f);
 
@@ -74,6 +78,8 @@ auto GameState = (int*)0x00A99BBC;
 auto SkyRotation = (unsigned short*)0x00B77B78;
 auto pFogColor = (int*)0x00B74234;
 auto LampFlareSize = (float*)0x00A6BC14;
+auto SkyCarReflection = (float*)0x00A63D1C;
+auto SkyRoadReflection = (float*)0x00A63D18;
 
 void Update()
 {
@@ -90,6 +96,8 @@ void Update()
 		float time = ForceTime < 0 ? tod->CurrentTimeOfDay : ForceTime;
 
 		SkyBrightness = lerp(Night.Sky, Morning.Sky, time);
+		*SkyCarReflection = SkyBrightness * 0.2f;
+		*SkyRoadReflection = SkyBrightness * 0.6f;
 		WindowBrightness = lerp(Night.Vertex2, Morning.Vertex2, time);
 		VertexBrightness = lerp(Night.Vertex3, Morning.Vertex3, time);
 		*WorldBrightness = lerp(Night.Vertex1, Morning.Vertex1, time);
@@ -113,7 +121,9 @@ void Update()
 	if (*GameState == 3)
 	{
 		*CarBrightness = FrontEnd.Car;
-		*WorldBrightness = 1.5;
+		*WorldBrightness = 1.5f;
+		WindowBrightness = 1.0f;
+		VertexBrightness = 1.0f;
 		*FogFallof = 0.0002579985012;
 		*SkyRotation = 0;
 	}
