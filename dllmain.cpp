@@ -47,7 +47,7 @@ void InitPresset(CIniReader& iniReader, Presset& presset, const char* name)
 
 void InitConfig()
 {
-	CIniReader iniReader("NFSCWeather.ini");
+	CIniReader iniReader("NFSCTimeOfNight.ini");
 
 	InitPresset(iniReader, Morning, "MORNING");
 	InitPresset(iniReader, Night, "NIGHT");
