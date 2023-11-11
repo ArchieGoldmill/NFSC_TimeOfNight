@@ -35,6 +35,7 @@ float LampFlareThreshold = 0.0f;
 float LampFlareBackup = -1.0f;
 bool MoonRotation = false;
 bool LiveReload = false;
+bool TimeSetting = false;
 
 void InitPresset(CIniReader& iniReader, Presset& presset, const char* name)
 {
@@ -64,6 +65,8 @@ void InitConfig()
 	MoonRotation = iniReader.ReadInteger("GENERAL", "MoonRotation", 0) == 1;
 
 	LiveReload = iniReader.ReadInteger("GENERAL", "LiveReload", 0) == 1;
+
+	TimeSetting = iniReader.ReadInteger("GENERAL", "TimeSetting", 0) == 1;
 
 	FogColor = iniReader.ReadUInteger("GENERAL", "FogColor", 0);
 }
@@ -138,6 +141,62 @@ void UpdateHook()
 	__asm popad;
 }
 
+bool __fastcall DALOptions_GetTimeOfDay(void*, void*, float* val)
+{
+	*val = eTimeOfDayLighting::Instance()->CurrentTimeOfDay;
+	return 1;
+}
+
+bool __fastcall DALOptions_SetTimeOfDay(void*, void*, float val)
+{
+	eTimeOfDayLighting::Instance()->CurrentTimeOfDay = val;
+	return 1;
+}
+
+void __declspec(naked) DALOptions_GetFloat_Case_5004()
+{
+	_asm
+	{
+		mov eax, dword ptr ds : [esp + 0x10]
+		push eax
+		mov ecx, esi
+		call DALOptions_GetTimeOfDay
+		pop edi
+		pop esi
+		retn 0x14
+	}
+}
+
+void __declspec(naked) DALOptions_SetFloat_Case_5004()
+{
+	_asm
+	{
+		mov eax, dword ptr ds : [esp + 0x10]
+		push eax
+		mov ecx, esi
+		call DALOptions_SetTimeOfDay
+		pop edi
+		pop esi
+		retn 0x14
+	}
+}
+
+void __declspec(naked) FEOptionsScreen_AddDALOption_Case_5004_hook()
+{
+	_asm
+	{
+		// Set new values
+		push 1
+		push 0x3c23d70a // 0.01f, Step Size
+		push 0x3F800000 // 1.0f, Max Value
+		push 0 // Min Value
+
+		// Jump back to create the option
+		push 0x5C1E0D
+		retn
+	}
+}
+
 void Init()
 {
 	InitConfig();
@@ -162,8 +221,21 @@ void Init()
 		injector::MakeNOP(0x007AFD0B, 7, true);
 	}
 
-	// Make time to go all the way down to 0
-	injector::WriteMemory(0x007F109E, 0, true);
+	if (TimeSetting)
+	{
+		// Make time to go all the way down to 0
+		injector::WriteMemory(0x007F109E, 0, true);
+
+		// DALOptions hook
+		injector::WriteMemory(0x4B3DA0, &DALOptions_GetFloat_Case_5004, true); // DALOptions::GetFloat jumptable
+		injector::WriteMemory(0x4B3F18, &DALOptions_SetFloat_Case_5004, true); // DALOptions::SetFloat jumptable
+
+		// Video Options (Basic): Replace Resolution with Time of Day
+		injector::WriteMemory<DWORD>(0x5C6916, 5004, true); // FEOptionsStateManager::SetupPCVideoBasic (5004 = "Time of Night")
+
+		// Adjust slider min max and step values
+		injector::MakeJMP(0x5C1F79, FEOptionsScreen_AddDALOption_Case_5004_hook, true); // FeOptionsScreen::AddDalOption
+	}
 }
 
 BOOL APIENTRY DllMain(HMODULE, DWORD reason, LPVOID)

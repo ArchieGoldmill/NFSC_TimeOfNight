@@ -76,7 +76,7 @@
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>..\..\..\Games\Need for Speed Carbon\_apex\scripts\</OutDir>
+    <OutDir>.\mod\Binary\scripts\</OutDir>
     <TargetName>NFSCTimeOfNight</TargetName>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
