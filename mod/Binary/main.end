@@ -6,14 +6,19 @@ unlock_memory all
 
 move_file override relative absolute scripts\NFSCTimeOfNight.asi scripts\NFSCTimeOfNight.asi
 
-combobox "Default filter" "Custom filter" "Please select an option"
+combobox "Default filter" "Gray filter" "Blend filters" "Please select an option"
 
 "Default filter"
 move_file override relative absolute scripts\no_filter.ini scripts\NFSCTimeOfNight.ini
 
-"Custom filter"
+"Gray filter"
 replace_texture GLOBAL\GLOBALB.LZC TPKBlocks GLOBALTEXTURESPC FILTER2 textures\FILTER2.dds
-move_file override relative absolute scripts\filter.ini scripts\NFSCTimeOfNight.ini
+move_file override relative absolute scripts\gray_filter.ini scripts\NFSCTimeOfNight.ini
+move_file override relative absolute scripts\NFSCHDReflections.ini scripts\NFSCHDReflections.ini
+
+"Blend filters"
+replace_texture GLOBAL\GLOBALB.LZC TPKBlocks GLOBALTEXTURESPC FILTER2 textures\FILTER2.dds
+move_file override relative absolute scripts\blend_filters.ini scripts\NFSCTimeOfNight.ini
 move_file override relative absolute scripts\NFSCHDReflections.ini scripts\NFSCHDReflections.ini
 
 end

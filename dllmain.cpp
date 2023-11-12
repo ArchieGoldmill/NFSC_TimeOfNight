@@ -26,6 +26,7 @@ struct Presset
 	float Vertex3;
 	float Sky;
 	float Car;
+	int Filter;
 } Morning, Night, FrontEnd;
 
 unsigned int FogColor = 0;
@@ -35,6 +36,7 @@ float LampFlareBackup = -1.0f;
 bool MoonRotation = false;
 bool LiveReload = false;
 bool TimeSetting = false;
+bool FilterTransition = false;
 
 void InitPresset(CIniReader& iniReader, Presset& presset, const char* name)
 {
@@ -43,6 +45,7 @@ void InitPresset(CIniReader& iniReader, Presset& presset, const char* name)
 	presset.Vertex1 = iniReader.ReadFloat(name, "Vertex1", 1.0f);
 	presset.Vertex2 = iniReader.ReadFloat(name, "Vertex2", 1.0f);
 	presset.Vertex3 = iniReader.ReadFloat(name, "Vertex3", 1.0f);
+	presset.Filter = iniReader.ReadInteger(name, "Filter", 0);
 }
 
 void InitConfig()
@@ -67,12 +70,15 @@ void InitConfig()
 
 	TimeSetting = iniReader.ReadInteger("GENERAL", "TimeSetting", 0) == 1;
 
+	FilterTransition = iniReader.ReadInteger("GENERAL", "FilterTransition", 0) == 1;
+
 	FogColor = iniReader.ReadUInteger("GENERAL", "FogColor", 0);
 }
 
 float SkyBrightness = 1;
 float WindowBrightness = 1;
 float VertexBrightness = 1;
+float FilterLerp = 0;
 auto CarBrightness = (float*)0x009EA968;
 auto WorldBrightness = (float*)0x00A6C204;
 auto FogFallof = (float*)0x00B74228;
@@ -82,6 +88,7 @@ auto pFogColor = (int*)0x00B74234;
 auto LampFlareSize = (float*)0x00A6BC14;
 auto SkyCarReflection = (float*)0x00A63D1C;
 auto SkyRoadReflection = (float*)0x00A63D18;
+auto Filters = (int*)0x00B43068;
 auto _UpdateTod = (void(__thiscall*)(eTimeOfDayLighting * _this))0x007F1080;
 
 void __fastcall Update(eTimeOfDayLighting* tod)
@@ -120,6 +127,11 @@ void __fastcall Update(eTimeOfDayLighting* tod)
 		}
 
 		*LampFlareSize = time > LampFlareThreshold ? 0 : LampFlareBackup;
+
+		if (FilterTransition)
+		{
+			FilterLerp = time * time;
+		}
 	}
 
 	if (*GameState == 3)
@@ -193,7 +205,6 @@ void Init()
 {
 	InitConfig();
 
-	// Hope no one uses this nullsub
 	injector::MakeCALL(0x0072EC94, Update, true);
 
 	injector::WriteMemory(0x0072E5E1, &SkyBrightness, true);
@@ -211,6 +222,14 @@ void Init()
 		injector::MakeNOP(0x007AFCEA, 17, true);
 		injector::MakeNOP(0x007AFD04, 3, true);
 		injector::MakeNOP(0x007AFD0B, 7, true);
+	}
+
+	if (FilterTransition)
+	{
+		injector::WriteMemory(0x0071D702, Filters + Night.Filter, true);
+		injector::WriteMemory(0x0071D747, Filters + Morning.Filter, true);
+		injector::WriteMemory(0x007C8696, &FilterLerp, true);
+		injector::WriteMemory(0x007C8686, 0x548B0CEB, true);
 	}
 
 	if (TimeSetting)

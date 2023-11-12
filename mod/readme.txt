@@ -1,5 +1,9 @@
 NFS Carbon - Time of night
 
+Description:
+Script that changes in-game visuals based on the current time of day/night.
+Also provides custom LUT filter that makes game less blue.
+
 How to install:
 1. Install HD Reflections (https://nfsmods.xyz/mod/3363).
 2. Run Binary in User mode and select install.end (https://nfsmods.xyz/mod/1638).
