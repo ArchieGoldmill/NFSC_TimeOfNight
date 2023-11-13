@@ -2,11 +2,6 @@
 #include "Injector/injector.hpp"
 #include "IniReader/IniReader.h"
 
-float lerp(float a, float b, float f)
-{
-	return a * (1.0 - f) + (b * f);
-}
-
 struct eTimeOfDayLighting
 {
 	float UpdateRate;
@@ -106,14 +101,14 @@ void __fastcall Update(eTimeOfDayLighting* tod)
 
 		float time = ForceTime < 0 ? tod->CurrentTimeOfDay : ForceTime;
 
-		SkyBrightness = lerp(Night.Sky, Morning.Sky, time);
+		SkyBrightness = std::lerp(Night.Sky, Morning.Sky, time);
 		*SkyCarReflection = SkyBrightness * 0.2f;
 		*SkyRoadReflection = SkyBrightness * 0.6f;
-		WindowBrightness = lerp(Night.Vertex2, Morning.Vertex2, time);
-		VertexBrightness = lerp(Night.Vertex3, Morning.Vertex3, time);
-		*WorldBrightness = lerp(Night.Vertex1, Morning.Vertex1, time);
-		*CarBrightness = lerp(Night.Car, Morning.Car, time);
-		*FogFallof = lerp(0.0002579985012, 0.0001379985012, time);
+		WindowBrightness = std::lerp(Night.Vertex2, Morning.Vertex2, time);
+		VertexBrightness = std::lerp(Night.Vertex3, Morning.Vertex3, time);
+		*WorldBrightness = std::lerp(Night.Vertex1, Morning.Vertex1, time);
+		*CarBrightness = std::lerp(Night.Car, Morning.Car, time);
+		*FogFallof = std::lerp(0.0002579985012, 0.0001379985012, time);
 
 		if (MoonRotation)
 		{
@@ -236,6 +231,7 @@ void Init()
 	{
 		// Make time to go all the way down to 0
 		injector::WriteMemory(0x007F109E, 0, true);
+		injector::MakeNOP(0x007F1098, 2, true);
 
 		// DALOptions hook
 		injector::WriteMemory(0x4B3DA0, &DALOptions_GetFloat_Case_5004, true); // DALOptions::GetFloat jumptable
